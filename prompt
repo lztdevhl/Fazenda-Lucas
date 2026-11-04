@@ -1,0 +1,296 @@
+# CODEX — IMPLEMENTAR GESTÃO FINANCEIRA POR NÚCLEOS
+
+## Objetivo
+
+Atue como engenheiro de software sênior especializado em Next.js, TypeScript, Supabase, PostgreSQL e sistemas financeiros.
+
+O sistema Fazenda Lucas já possui os módulos financeiros, dashboard, investimentos, relatórios e autenticação.
+
+Agora precisamos implementar uma nova funcionalidade: **gestão financeira por núcleos de produção de suínos**.
+
+O proprietário possui vários núcleos dentro da mesma fazenda e deseja acompanhar o financeiro de cada um individualmente, sem perder a visão consolidada.
+
+Preserve todas as funcionalidades existentes e a identidade visual simplificada do sistema.
+
+## 1. Seletor de núcleo na sidebar
+
+Adicionar um seletor logo abaixo do nome Fazenda Lucas.
+
+Opções:
+
+- Toda a fazenda
+- Núcleo 01
+- Núcleo 02
+- Núcleo 03
+- Demais núcleos cadastrados
+
+As opções devem ser carregadas dinamicamente do Supabase.
+
+O usuário deve conseguir mudar de núcleo facilmente.
+
+Ao selecionar um núcleo, atualizar o contexto financeiro de todas as páginas aplicáveis.
+
+O núcleo selecionado deve permanecer ativo ao navegar entre os módulos.
+
+Utilize uma solução consistente de estado global ou parâmetros de URL.
+
+Evite inconsistências de cache ao alternar os núcleos.
+
+## 2. Cadastro dos núcleos
+
+Criar gerenciamento de núcleos em Configurações.
+
+Campos:
+
+- Nome do núcleo
+- Código identificador opcional
+- Descrição opcional
+- Status ativo/inativo
+
+Permitir:
+
+- Criar núcleo
+- Editar núcleo
+- Desativar núcleo
+- Listar núcleos
+
+Não permitir exclusão física de núcleos associados a registros financeiros.
+
+Núcleos desativados devem continuar disponíveis para consultas históricas.
+
+Não criar núcleos fictícios automaticamente.
+
+## 3. Banco de dados
+
+Inspecione a estrutura existente antes de criar migrations.
+
+Criar, se necessário:
+
+`farm_units`
+
+Campos sugeridos:
+
+- id
+- farm_id
+- name
+- code
+- description
+- is_active
+- created_at
+- updated_at
+
+Relacionar os registros financeiros ao núcleo por meio de `farm_unit_id`.
+
+Considerar:
+
+- Entradas
+- Saídas
+- Investimentos produtivos
+- Relatórios
+- Demais entidades que dependam do contexto financeiro
+
+Criar foreign keys, índices, validações e políticas RLS.
+
+Não alterar migrations antigas.
+
+Criar apenas migrations incrementais.
+
+## 4. Migração dos dados existentes
+
+Este ponto é crítico.
+
+O sistema já possui movimentações financeiras.
+
+Não atribua automaticamente todos os lançamentos antigos ao Núcleo 01.
+
+Preserve os registros existentes.
+
+Implemente uma classificação inicial como "Geral da fazenda" ou "Sem núcleo definido", conforme a modelagem escolhida.
+
+Permita que o proprietário classifique posteriormente os registros antigos.
+
+Não perder dados, não alterar valores financeiros e não recriar movimentações.
+
+A migração deve ser segura, reversível quando possível e documentada.
+
+Não executar migrations no Supabase remoto sem autorização.
+
+## 5. Contexto global do núcleo
+
+Criar um mecanismo centralizado para o núcleo selecionado.
+
+Exemplo:
+
+- `all`: toda a fazenda
+- UUID: núcleo específico
+
+O identificador `all` é apenas um filtro de interface, não um ID real de banco.
+
+Ao mudar o núcleo:
+
+- Atualizar dashboard
+- Atualizar entradas
+- Atualizar saídas
+- Atualizar investimentos
+- Atualizar relatórios
+- Atualizar indicadores relevantes
+
+Toda consulta deverá respeitar o filtro no servidor.
+
+Não confiar exclusivamente no frontend para controlar acesso aos dados.
+
+## 6. Dashboard por núcleo
+
+Quando "Toda a fazenda" estiver selecionado:
+
+Mostrar os indicadores consolidados da propriedade, incluindo os registros gerais da fazenda.
+
+Quando um núcleo específico estiver selecionado:
+
+Mostrar somente receitas, despesas, resultados e compromissos atribuídos àquele núcleo.
+
+Preservar as regras financeiras existentes.
+
+Não duplicar movimentações.
+
+Não apresentar o saldo total de uma conta bancária compartilhada como saldo exclusivo do núcleo.
+
+Para a visão específica, utilizar indicadores economicamente atribuíveis ao núcleo.
+
+Se não houver modelagem confiável de saldo por núcleo, exibir entradas, saídas e resultado do núcleo em vez de um saldo bancário fictício.
+
+## 7. Entradas e saídas
+
+Adicionar o campo "Núcleo" nos formulários financeiros.
+
+O campo deve ser simples e intuitivo.
+
+Quando um núcleo estiver selecionado na sidebar, utilizá-lo como valor inicial do formulário.
+
+Permitir selecionar "Geral da fazenda" para lançamentos compartilhados.
+
+Na visão consolidada, permitir escolher qualquer núcleo ativo.
+
+Não permitir gravar movimentações em núcleos inativos.
+
+Manter as demais validações financeiras existentes.
+
+## 8. Investimentos
+
+Permitir vincular investimentos produtivos a um núcleo.
+
+Exemplo:
+
+- Núcleo 01 — Reforma de galpão
+- Núcleo 02 — Sistema de ventilação
+- Núcleo 03 — Equipamentos de alimentação
+
+Investimentos gerais podem ficar associados à fazenda.
+
+Investimentos financeiros pertencentes ao caixa geral não devem ser atribuídos artificialmente a um núcleo.
+
+Não duplicar movimentações financeiras vinculadas a investimentos.
+
+## 9. Relatórios por núcleo
+
+Todos os relatórios deverão respeitar o núcleo selecionado.
+
+Exemplos:
+
+- Entradas do Núcleo 01
+- Despesas do Núcleo 02
+- Investimentos do Núcleo 03
+- Resultado consolidado da fazenda
+
+No PDF, Excel e CSV, identificar o núcleo filtrado.
+
+Na visão consolidada, permitir uma análise comparativa por núcleo quando houver dados suficientes.
+
+Não alterar os critérios financeiros dos relatórios existentes.
+
+## 10. Contas bancárias compartilhadas
+
+As contas bancárias pertencem inicialmente à fazenda.
+
+Não criar contas bancárias duplicadas para cada núcleo.
+
+Uma movimentação financeira pode pertencer economicamente a um núcleo e, ao mesmo tempo, utilizar uma conta bancária compartilhada.
+
+Manter essa separação no modelo de dados.
+
+Não confundir:
+
+- Saldo bancário
+- Resultado operacional do núcleo
+- Entradas e saídas atribuídas ao núcleo
+- Investimentos atribuídos ao núcleo
+
+## 11. Interface
+
+Manter o design minimalista já existente.
+
+O seletor deve:
+
+- Ser intuitivo
+- Mostrar claramente a seleção atual
+- Funcionar no desktop e no celular
+- Ser acessível por teclado
+- Não ocupar espaço excessivo
+
+Adicionar indicação discreta do núcleo ativo no título das páginas quando necessário.
+
+Não adicionar novas telas desnecessárias.
+
+## 12. Segurança
+
+Garantir:
+
+- RLS nas novas tabelas.
+- Acesso somente ao proprietário autenticado.
+- Validação de `farm_unit_id` no servidor.
+- Impedimento de associação a núcleos de outras fazendas.
+- Integridade das referências.
+- Proteção das operações de criação, edição e desativação.
+
+## 13. Testes
+
+Criar testes para:
+
+1. Cadastro de núcleo.
+2. Edição e desativação.
+3. Alternância na sidebar.
+4. Persistência do filtro.
+5. Entradas por núcleo.
+6. Saídas por núcleo.
+7. Investimentos por núcleo.
+8. Dashboard consolidado.
+9. Dashboard individual.
+10. Relatórios e exportações por núcleo.
+11. Registros antigos sem núcleo.
+12. Contas bancárias compartilhadas.
+13. Ausência de dupla contabilização.
+14. Autorização e RLS.
+15. Troca rápida entre núcleos sem exibição de dados desatualizados.
+
+Executar typecheck, lint, build e testes disponíveis.
+
+## 14. Entrega
+
+Ao concluir:
+
+- Liste as funcionalidades implementadas.
+- Informe os arquivos modificados.
+- Liste as migrations criadas.
+- Explique como cadastrar núcleos.
+- Explique como classificar movimentações antigas.
+- Documente as regras de consolidação.
+- Apresente os resultados dos testes.
+- Informe eventuais pendências.
+
+Não executar deploy automaticamente.
+
+Não apagar registros financeiros.
+
+Não realizar alterações destrutivas no banco remoto.
+
+**Resultado esperado:** um único sistema financeiro com múltiplos núcleos, permitindo ao proprietário alternar entre cada núcleo na sidebar e acompanhar os resultados individuais ou consolidados, preservando todas as funcionalidades financeiras existentes.

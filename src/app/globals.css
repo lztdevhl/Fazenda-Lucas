@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #f5f8f6;
+  --color-foreground: #172620;
+  --color-primary: #174b3c;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #edf2ef;
+  --color-muted-foreground: #66756d;
+  --color-border: #e1e8e3;
+  --font-sans: var(--font-geist-sans);
+}
+
+:root { color-scheme: light; }
+* { border-color: var(--color-border); }
+body { background: var(--color-background); color: var(--color-foreground); font-family: var(--font-geist-sans), Arial, sans-serif; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+::selection { background: #c9e4d7; color: #173e31; }
+details > summary { cursor: pointer; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: "↓"; color: #6d7d74; font-size: 0.85rem; }
+details[open] > summary::after { content: "↑"; }
+
+@media print {
+  @page { margin: 14mm; }
+  body { background: white !important; color: #172620; }
+  aside, nav, header, .print\:hidden { display: none !important; }
+  .lg\:pl-68 { padding-left: 0 !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  .print-report .rounded-2xl, .print-report .rounded-xl { border-radius: 0 !important; box-shadow: none !important; }
+  .print-report table { font-size: 10px; }
+  .page-number::after { content: counter(page); }
+}

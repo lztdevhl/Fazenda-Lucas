@@ -1,0 +1,14 @@
+import Link from "next/link";
+import { ArrowRight, Building2, LockKeyhole } from "lucide-react";
+import { CategoryManager } from "@/components/category-manager";
+import { FarmUnitManager } from "@/components/farm-unit-manager";
+import { PageIntro } from "@/components/page-intro";
+import { Card } from "@/components/ui/card";
+import { requireOwner } from "@/lib/auth";
+import { listFarmUnits } from "@/lib/farm-units/repository";
+import { listCategories } from "@/lib/finance/repository";
+
+export default async function ConfiguracoesPage() {
+  const [categories, units, owner] = await Promise.all([listCategories(), listFarmUnits(), requireOwner()]);
+  return <><PageIntro eyebrow="Preferências" title="Configurações" description="Gerencie os dados da fazenda, núcleos, categorias e sua conta." /><div className="space-y-4"><Card className="flex items-start gap-4 p-5 sm:p-6"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff5f0] text-primary"><Building2 size={20} /></span><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Dados da fazenda</p><h2 className="mt-1 font-semibold">{owner.farm?.name ?? "Fazenda"}</h2><p className="mt-1 text-sm text-muted-foreground">Proprietário: {owner.farm?.owner_name || "Não informado"}</p></div></Card><details open className="rounded-2xl border bg-white p-5 sm:p-6"><summary className="flex items-center justify-between text-base font-semibold"><span>Núcleos de produção</span><span className="mr-3 text-xs font-normal text-muted-foreground">{units.length} cadastrado{units.length === 1 ? "" : "s"}</span></summary><div className="mt-6"><FarmUnitManager units={units} /></div></details><details open className="rounded-2xl border bg-white p-5 sm:p-6"><summary className="flex items-center justify-between text-base font-semibold"><span>Categorias</span><span className="mr-3 text-xs font-normal text-muted-foreground">{categories.length} cadastrada{categories.length === 1 ? "" : "s"}</span></summary><div className="mt-6"><CategoryManager categories={categories} /></div></details><Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"><div className="flex items-start gap-4"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff5f0] text-primary"><LockKeyhole size={20} /></span><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Minha conta</p><h2 className="mt-1 font-semibold">Segurança da conta</h2><p className="mt-1 text-sm text-muted-foreground">Atualize sua senha de acesso.</p></div></div><Link href="/update-password" className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">Alterar senha <ArrowRight size={16} /></Link></Card></div></>;
+}
