@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, BanknoteArrowUp, Clock3, CircleDollarSign, Landmark, Plus, Wallet, Warehouse } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, BanknoteArrowDown, BanknoteArrowUp, Clock3, CircleDollarSign, Landmark, Plus, Wallet, Warehouse } from "lucide-react";
 import { BalanceChart, CategoryChart, ResultChart } from "@/components/dashboard-charts";
 import { DashboardCard } from "@/components/dashboard-card";
 import { DateRangeFilter } from "@/components/date-range-filter";
@@ -50,11 +50,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   return <>
     <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between"><PageIntro eyebrow="Visão geral" title={selectedUnit ? `${selectedUnit.name} · Dashboard` : "Bom dia, proprietário"} description={selectedUnit ? "Acompanhe os resultados atribuídos a este núcleo." : "Acompanhe o que entrou, o que saiu e o que precisa de atenção."} /><div className="mb-7"><DateRangeFilter period={period} /></div></div>
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-muted-foreground">Período: {dateLabel(period.from)} a {dateLabel(period.to)} · {selectedUnit ? `núcleo ${selectedUnit.name}` : "toda a fazenda"} · valores realizados pela data de liquidação.</p><div className="flex flex-wrap gap-2"><Link href={`/entradas?novo=1${unitQuery}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg border bg-white px-3 text-xs font-medium hover:bg-[#eef5f0]"><Plus size={14} />Nova entrada</Link><Link href={`/saidas?novo=1${unitQuery}`} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white hover:bg-[#103d30]"><Plus size={14} />Nova saída</Link></div></div>
-    <section aria-label="Resumo financeiro" className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section aria-label="Resumo financeiro" className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <DashboardCard title="Saldo disponível" icon={Wallet} value={selectedUnit ? "—" : formatBRL(summary.balance)} note={selectedUnit ? "Saldo bancário compartilhado não é separado por núcleo." : `Saldo consolidado até ${dateLabel(period.to)}.`} />
       <DashboardCard title="Entrou no mês" icon={ArrowDownLeft} value={formatBRL(summary.income)} note="Dinheiro recebido no período, líquido de estornos." />
       <DashboardCard title="Saiu no mês" icon={ArrowUpRight} value={formatBRL(summary.cashOutflow)} note="Despesas pagas, investimentos e aportes; transferências internas ficam fora." />
       <DashboardCard title="Contas a pagar" icon={BanknoteArrowUp} value={formatBRL(summary.payable)} note="Obrigações pendentes com vencimento no período selecionado." />
+      <DashboardCard title="Contas a receber" icon={BanknoteArrowDown} value={formatBRL(summary.receivable)} note="Recebimentos pendentes com vencimento no período selecionado." />
     </section>
     <section className="mb-6" aria-label="Movimentações recentes"><RecentMovements items={summary.recent} unitId={selectedUnitId} /></section>
     <details className="group">
