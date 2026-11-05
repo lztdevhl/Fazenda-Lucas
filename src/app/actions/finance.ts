@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireOwner } from "@/lib/auth";
 import {
   accountInputSchema, cancelInputSchema, categoryInputSchema, reverseInputSchema,
-  settleInputSchema, transactionInputSchema,
+  deleteTransactionSchema, settleInputSchema, transactionInputSchema,
 } from "@/lib/finance/validation";
 
 export type FinanceActionResult = { ok: true; id: string } | { ok: false; error: string };
@@ -29,6 +29,8 @@ function refreshFinance() {
   revalidatePath("/configuracoes");
   revalidatePath("/entradas");
   revalidatePath("/saidas");
+  revalidatePath("/dashboard");
+  revalidatePath("/relatorios");
 }
 
 export async function saveAccountAction(input: unknown): Promise<FinanceActionResult> {
@@ -96,6 +98,16 @@ export async function cancelTransactionAction(input: unknown): Promise<FinanceAc
   if (!parsed.success) return failure("Lançamento inválido.");
   const supabase = await authorizedClient();
   const { data, error } = await supabase.rpc("finance_cancel_transaction", { p_id: parsed.data.id });
+  const result = rpcResult(data, error);
+  if (result.ok) refreshFinance();
+  return result;
+}
+
+export async function deleteTransactionAction(input: unknown): Promise<FinanceActionResult> {
+  const parsed = deleteTransactionSchema.safeParse(input);
+  if (!parsed.success) return failure("Lançamento inválido.");
+  const supabase = await authorizedClient();
+  const { data, error } = await supabase.rpc("finance_delete_transaction", { p_id: parsed.data.id });
   const result = rpcResult(data, error);
   if (result.ok) refreshFinance();
   return result;

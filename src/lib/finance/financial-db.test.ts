@@ -38,6 +38,7 @@ describe("núcleo financeiro no PostgreSQL", () => {
     await pg.exec(readFileSync(join(process.cwd(), "supabase/migrations/20261023000300_dashboard_data.sql"), "utf8"));
     await pg.exec(readFileSync(join(process.cwd(), "supabase/migrations/20261027000100_dashboard_phase3.sql"), "utf8"));
     await pg.exec(readFileSync(join(process.cwd(), "supabase/migrations/20261027000200_investments.sql"), "utf8"));
+    await pg.exec(readFileSync(join(process.cwd(), "supabase/migrations/20261105000200_delete_financial_transactions.sql"), "utf8"));
     await pg.query("insert into auth.users(id) values ($1), ($2)", [owner1, owner2]);
     await pg.query("insert into public.farms(id,owner_id,name) values ($1,$2,'Fazenda Um'),($3,$4,'Fazenda Dois')", [farm1, owner1, farm2, owner2]);
     await pg.exec("set role authenticated");
@@ -143,5 +144,16 @@ describe("núcleo financeiro no PostgreSQL", () => {
     expect(await scalar("select public.finance_dashboard_overdue_expenses('2026-03-01') as value")).toBe("0.00");
     expect((await pg.query("select * from public.finance_dashboard_next_due('2026-03-01')")).rows).toHaveLength(0);
     await asOwner(owner1);
+  });
+
+  it("exclui fisicamente uma entrada e remove o estorno vinculado", async () => {
+    const categoryIncome = await scalar("select id as value from public.financial_categories where farm_id=$1 and category_type='income' limit 1", [farm1]);
+    const accountId = await scalar("select id as value from public.financial_accounts where farm_id=$1 and name='Banco'", [farm1]);
+    const id = await scalar("select public.finance_save_transaction(null,'income','Entrada para excluir',30.00,$1,$2,'2026-04-01','2026-04-01',null,null,$3) as value", [categoryIncome, accountId, "cccc1111-1111-4111-8111-111111111111"]);
+    await pg.query("select public.finance_settle_transaction($1,$2,'2026-04-02')", [id, accountId]);
+    const reversalId = await scalar("select public.finance_reverse_transaction($1,'2026-04-03',$2) as value", [id, "dddd1111-1111-4111-8111-111111111111"]);
+    await pg.query("select public.finance_delete_transaction($1)", [id]);
+    expect(await scalar<number>("select count(*)::int as value from public.financial_transactions where id in ($1,$2)", [id, reversalId])).toBe(0);
+    expect((await pg.query("select * from public.finance_list_transactions('income') where id=$1", [id])).rows).toHaveLength(0);
   });
 });

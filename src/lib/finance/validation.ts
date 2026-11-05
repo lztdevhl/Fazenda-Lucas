@@ -39,6 +39,7 @@ export const transactionInputSchema = z.object({
 
 export const settleInputSchema = z.object({ id: uuid, accountId: uuid.nullable().default(null), settledOn: isoDate });
 export const cancelInputSchema = z.object({ id: uuid });
+export const deleteTransactionSchema = z.object({ id: uuid });
 export const reverseInputSchema = z.object({ id: uuid, settledOn: isoDate, idempotencyKey: uuid });
 
 export const accountRowSchema = z.object({
